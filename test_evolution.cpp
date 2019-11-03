@@ -22,7 +22,6 @@ using namespace std;
 #define E_E 2.718281828
 #define E_PI 3.1415926535
 #define mod 998244353
-//#define int long long
 
 #define INF 0x3f3f3f3f
 #define X first
@@ -46,11 +45,11 @@ default_random_engine dre(time(NULL));
 uniform_int_distribution<int> d(0, (1 << 30));
 
 /*
- * check函数用于判断一个单位（基因）是否是有效的
- * F函数是计算适应度的（即该01串的总贡献）
- * default...是C++11自带的生成均匀随机数的引擎（?）
- * uniform...就是具体到生成一个随机数的函数
- * 事实上这属于上一个版本的遗留问题，不过已经基本解决
+ * check���������ж�һ����λ�������Ƿ�����Ч��
+ * F�����Ǽ�����Ӧ�ȵģ�����01�����ܹ��ף�
+ * default...��C++11�Դ������ɾ�������������棨?��
+ * uniform...���Ǿ��嵽����һ��������ĺ���
+ * ��ʵ����������һ���汾���������⣬�����Ѿ��������
 */
 bool check(int x) {
 	if(x == 3) return 1;
@@ -71,9 +70,9 @@ int F(bitset < 160 > x) {
 }
 
 /*
- * init()函数的作用是生成一个大小为N的种群
- * 不得不说bitset真是个好东西^_^
- * 可以直接用01串赋初值实在是省了很多麻烦
+ * init()����������������һ����СΪN����Ⱥ
+ * ���ò�˵bitset���Ǹ��ö���^_^
+ * ����ֱ����01������ֵʵ����ʡ�˺ܶ��鷳
  * 
 */
 
@@ -90,7 +89,7 @@ void init() {
 	}
 }
 
-//进化
+//����
 
 void evolve() {
 	int mx = -10000000, smx = -10000000;
@@ -100,23 +99,20 @@ void evolve() {
 	for(int i = 0; i < N; i++) {
 		int res = 0;
 		res = F(v[i]);
-		//cout << res << endl;
 		if(res > mx) smx = mx, py = px, px = i, mx = res;
-		else if(res > smx) smx = res, py = i; //记录适应度最大和次大的01串
+		else if(res > smx) smx = res, py = i; //��¼��Ӧ�����ʹδ��01��
 		if(res < mn) smn = mn, ty = tx, tx = i, mn = res;
-		else if(res < smn) smn = res, ty = i; //记录适应度最小和次小的01串
-		val[i] = res + 800; // 保证非负
+		else if(res < smn) smn = res, ty = i; //��¼��Ӧ����С�ʹ�С��01��
+		val[i] = res + 800; // ��֤�Ǹ�
 		if(i) sum[i] = sum[i - 1] + val[i];
 		else sum[i] = val[i];
 	}
-	//cout << mx << endl;
 	if(mx > Ans) {
 		Ans = mx;
 		ans = v[px];
 	}
-	v[tx] = v[px]; v[ty] = v[py]; //保留优秀基因，淘汰弱小个体，鉴于计算机内存和CPU算力有限，不敢扩大种群数量，只能执行末位淘汰
+	v[tx] = v[px]; v[ty] = v[py]; //�������������̭��С���壬���ڼ�����ڴ��CPU�������ޣ�����������Ⱥ������ֻ��ִ��ĩλ��̭
 	sum[0] = (int) (val[0] * 1. / sum[N - 1] * 100.);
-	//cout << sum[0] << endl;
 	for(int i = 1; i < N; i++) sum[i] = sum[i - 1] + (int) (val[i] * 1. / sum[N - 1] * 100.);
 	uniform_int_distribution<int> GetPos(0, sum[N - 1] - 1);
 	int p1 = GetPos(dre);
@@ -125,27 +121,27 @@ void evolve() {
 	py = (int) (upper_bound(sum, sum + N, p1) - sum);
 
 	/*
-	 * 专门解释一下上面这段代码，它的作用类似于加权
-	 * 根据适应度给每个01串分配一个权值，适应度越大权值越大
-	 * 目前的权值计算方式并不是最优的，存在一定的问题
-	 * 计算完成之后随机选择两个01串，这两个串将用于杂交，显然越优秀的个体越容易被选中
-	 * 具体的实现方式是将权值映射到值域数轴上，随机生成一个数，判断属于哪个01串
+	 * ר�Ž���һ��������δ��룬�������������ڼ�Ȩ
+	 * ������Ӧ�ȸ�ÿ��01������һ��Ȩֵ����Ӧ��Խ��ȨֵԽ��
+	 * Ŀǰ��Ȩֵ���㷽ʽ���������ŵģ�����һ��������
+	 * �������֮�����ѡ������01�������������������ӽ�����ȻԽ����ĸ���Խ���ױ�ѡ��
+	 * �����ʵ�ַ�ʽ�ǽ�Ȩֵӳ�䵽ֵ�������ϣ��������һ�������ж������ĸ�01��
 	*/
 	
-	int pos = d(dre) % 160; //随机生成一个位置作为交叉互换的点
+	int pos = d(dre) % 160; //�������һ��λ����Ϊ���滥���ĵ�
 	for(int i = 0; i <= pos; i++) {
 		int tmp_stat;
 		tmp_stat = v[px].test(i);
 		v[px][i] = v[py][i];
-		v[py].set(i, tmp_stat); //交叉互换
+		v[py].set(i, tmp_stat); //���滥��
 	}
 	for(int i = 0; i < N; i++) {
 		if(pow((db) d(dre) / (1LL << 60), 2) < muta_rate) {
 			pos = d(dre) % 160;
 			v[i].flip(pos); 
 			/*
-			 * 每个个体在每次进化中存在一定的概率变异（高中生物又快忘了，可能不太符合逻辑）
-			 * 变异的方式是将随机某一位取反
+			 * ÿ��������ÿ�ν����д���һ���ĸ��ʱ��죨���������ֿ����ˣ����ܲ�̫�����߼���
+			 * ����ķ�ʽ�ǽ����ĳһλȡ��
 			*/
 		}
 	}
@@ -179,8 +175,6 @@ void calc() {
 }
 
 signed main() {
-	//cout << (1 << 160) << endl;
-	//cin >> A;
 	int T = 0;
 	cin >> T;
 	while(T--) {
@@ -190,4 +184,3 @@ signed main() {
 	else cout << "Fuck!!!!     " << ev << " " << rn << endl;
 	return 0;
 }
-
