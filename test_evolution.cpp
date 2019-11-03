@@ -45,13 +45,16 @@ bitset < 160 > ans;
 default_random_engine dre(time(NULL));
 uniform_int_distribution<int> d(0, (1 << 30));
 
+/*
+ * check函数用于判断一个单位（基因）是否是有效的
+ * F函数是计算适应度的（即该01串的总贡献）
+ * default...是C++11自带的生成均匀随机数的引擎（?）
+ * uniform...就是具体到生成一个随机数的函数
+ * 事实上这属于上一个版本的遗留问题，不过已经基本解决
+*/
 bool check(int x) {
-	if(x <= 1) return 0;
-	if(! (x & 1)) return 0;
-	for(int i = 3; i * i <= x; i += 2) {
-		if(x % i == 0) return 0;
-	}
-	return 1;
+	if(x == 3) return 1;
+	else return 0;
 }
 
 int F(bitset < 160 > x) {
@@ -67,6 +70,13 @@ int F(bitset < 160 > x) {
 	return ret;
 }
 
+/*
+ * init()函数的作用是生成一个大小为N的种群
+ * 不得不说bitset真是个好东西^_^
+ * 可以直接用01串赋初值实在是省了很多麻烦
+ * 
+*/
+
 void init() {
 	string s = "";
 	for(int i = 0; i < N; i++) {
@@ -79,7 +89,8 @@ void init() {
 		v.push_back(tmp);
 	}
 }
-// 0 ~ 2097.152
+
+//进化
 
 void evolve() {
 	int mx = -10000000, smx = -10000000;
@@ -91,10 +102,10 @@ void evolve() {
 		res = F(v[i]);
 		//cout << res << endl;
 		if(res > mx) smx = mx, py = px, px = i, mx = res;
-		else if(res > smx) smx = res, py = i;
+		else if(res > smx) smx = res, py = i; //记录适应度最大和次大的01串
 		if(res < mn) smn = mn, ty = tx, tx = i, mn = res;
-		else if(res < smn) smn = res, ty = i;
-		val[i] = res + 800;
+		else if(res < smn) smn = res, ty = i; //记录适应度最小和次小的01串
+		val[i] = res + 800; // 保证非负
 		if(i) sum[i] = sum[i - 1] + val[i];
 		else sum[i] = val[i];
 	}
@@ -103,7 +114,7 @@ void evolve() {
 		Ans = mx;
 		ans = v[px];
 	}
-	v[tx] = v[px]; v[ty] = v[py];
+	v[tx] = v[px]; v[ty] = v[py]; //保留优秀基因，淘汰弱小个体，鉴于计算机内存和CPU算力有限，不敢扩大种群数量，只能执行末位淘汰
 	sum[0] = (int) (val[0] * 1. / sum[N - 1] * 100.);
 	//cout << sum[0] << endl;
 	for(int i = 1; i < N; i++) sum[i] = sum[i - 1] + (int) (val[i] * 1. / sum[N - 1] * 100.);
@@ -112,18 +123,30 @@ void evolve() {
 	px = (int) (upper_bound(sum, sum + N, p1) - sum);
 	while(p1 >= sum[px - 1] && p1 < sum[px]) p1 = GetPos(dre);
 	py = (int) (upper_bound(sum, sum + N, p1) - sum);
-	//cout << px << "   " << py << endl;
-	int pos = d(dre) % 160;
+
+	/*
+	 * 专门解释一下上面这段代码，它的作用类似于加权
+	 * 根据适应度给每个01串分配一个权值，适应度越大权值越大
+	 * 目前的权值计算方式并不是最优的，存在一定的问题
+	 * 计算完成之后随机选择两个01串，这两个串将用于杂交，显然越优秀的个体越容易被选中
+	 * 具体的实现方式是将权值映射到值域数轴上，随机生成一个数，判断属于哪个01串
+	*/
+	
+	int pos = d(dre) % 160; //随机生成一个位置作为交叉互换的点
 	for(int i = 0; i <= pos; i++) {
 		int tmp_stat;
 		tmp_stat = v[px].test(i);
 		v[px][i] = v[py][i];
-		v[py].set(i, tmp_stat);
+		v[py].set(i, tmp_stat); //交叉互换
 	}
 	for(int i = 0; i < N; i++) {
 		if(pow((db) d(dre) / (1LL << 60), 2) < muta_rate) {
 			pos = d(dre) % 160;
-			v[i].flip(pos);
+			v[i].flip(pos); 
+			/*
+			 * 每个个体在每次进化中存在一定的概率变异（高中生物又快忘了，可能不太符合逻辑）
+			 * 变异的方式是将随机某一位取反
+			*/
 		}
 	}
 }
