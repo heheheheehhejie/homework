@@ -152,7 +152,7 @@ LL ev = 0, rn = 0;
 void calc() {
 	N = 50;
 	init();
-	int T = 100000;
+	int T = 100;
 	while(T --) {
 		evolve();
 	}
