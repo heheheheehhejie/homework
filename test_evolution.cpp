@@ -83,7 +83,8 @@ void init() {
 
 void evolve() {
 	int mx = -10000000, smx = -10000000;
-	int px = 0, py = 0;
+	int mn = 10000000, smn = 10000000; 
+	int px = 0, py = 0, ty = 0, tx = 0;
 	sum[0] = 0;
 	for(int i = 0; i < N; i++) {
 		int res = 0;
@@ -91,6 +92,8 @@ void evolve() {
 		//cout << res << endl;
 		if(res > mx) smx = mx, py = px, px = i, mx = res;
 		else if(res > smx) smx = res, py = i;
+		if(res < mn) smn = mn, ty = tx, tx = i, mn = res;
+		else if(res < smn) smn = res, ty = i;
 		val[i] = res + 800;
 		if(i) sum[i] = sum[i - 1] + val[i];
 		else sum[i] = val[i];
@@ -100,6 +103,7 @@ void evolve() {
 		Ans = mx;
 		ans = v[px];
 	}
+	v[tx] = v[px]; v[ty] = v[py];
 	sum[0] = (int) (val[0] * 1. / sum[N - 1] * 100.);
 	//cout << sum[0] << endl;
 	for(int i = 1; i < N; i++) sum[i] = sum[i - 1] + (int) (val[i] * 1. / sum[N - 1] * 100.);
