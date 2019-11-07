@@ -96,7 +96,7 @@ void evolve() {
 		ans = v[px];
 	}
 	v[tx] = v[px]; v[ty] = v[py]; 
-	sum[0] = (int) (val[0] * 1. / sum[N - 1] * 100.);
+	sum[0] = (int) (val[0] * 1. / sum[N - 1] * 10000.);
 	for(int i = 1; i < N; i++) sum[i] = sum[i - 1] + (int) (val[i] * 1. / sum[N - 1] * 100.);
 	uniform_int_distribution<int> GetPos(0, sum[N - 1] - 1);
 	int p1 = GetPos(dre);
@@ -163,3 +163,4 @@ signed main() {
 	else cout << "Fuck!!!!     " << ev << " " << rn << endl;
 	return 0;
 }
+
